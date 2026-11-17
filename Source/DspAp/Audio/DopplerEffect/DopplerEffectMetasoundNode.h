@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HAL/Platform.h"
+#include "CoreMinimal.h"
 #include "MetasoundExecutableOperator.h"
 #include "MetasoundFacade.h"
 #include "MetasoundNodeInterface.h"
@@ -8,6 +8,8 @@
 #include "MetasoundDataReference.h"
 #include "MetasoundParamHelper.h"
 
+// Pin names live in the header so the automation tests can look up the output by name.
+// The namespace is scoped to this block so it does not leak into files that include this header.
 #define LOCTEXT_NAMESPACE "DopplerCalculator"
 
 namespace Metasound
@@ -19,6 +21,14 @@ namespace Metasound
         METASOUND_PARAM(SourceVelName, "Source Velocity", "Speed of the source moving towards the listener (cm/s).");
         METASOUND_PARAM(PitchMultiplierName, "Pitch Multiplier", "The calculated Doppler pitch shift factor.");
     }
+}
+
+#undef LOCTEXT_NAMESPACE
+
+namespace Metasound
+{
+    // Control-rate node: turns radial velocities into a frequency ratio.
+    // Velocities are signed: positive means "moving towards the other party".
     class DopplerCalculator : public TExecutableOperator<DopplerCalculator>
     {
     public:

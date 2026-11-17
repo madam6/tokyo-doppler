@@ -4,6 +4,7 @@
 #include "MetasoundParamHelper.h"
 #include "MetasoundVertex.h"
 
+#define LOCTEXT_NAMESPACE "DopplerCalculator"
 
 namespace Metasound
 {
@@ -92,28 +93,30 @@ namespace Metasound
     void DopplerCalculator::Execute()
     {
         // Get the current values from the input pins
-        float speedOfSound = *SpeedOfSoundValue;
-        float observerVelocity = *ObserverVelocityValue;
-        float sourceVelocity = *SourceVelocityValue;
+        const float speedOfSound = *SpeedOfSoundValue;
+        const float observerVelocity = *ObserverVelocityValue;
+        const float sourceVelocity = *SourceVelocityValue;
 
         // Prevent division by zero if the source travels at the speed of sound
-        if (abs(speedOfSound - sourceVelocity) <= 0.0001f)
+        if (FMath::Abs(speedOfSound - sourceVelocity) <= 0.0001f)
         {
             *PitchMultiplierOutput = 1.0f;
             return;
         }
 
-        // The Standard Doppler Formula
-        // f0 = ((v +- vo) / (v +- vs)) * fs
-        // f0 = observer frequency
-        // v = speed of sound = speedOfSound
-        // vo = observer velocity = observerVelocity
-        // vs = source velocity = sourceVelocity
-        // fs = emitted frequency
-        float PitchScale = (speedOfSound + observerVelocity) / (speedOfSound - sourceVelocity);
+        // Classic Doppler equation for a moving source and a moving observer:
+        //   f_o = f_s * (v + v_o) / (v - v_s)
+        // f_o = frequency heard by the observer
+        // f_s = frequency emitted by the source
+        // v   = speed of sound              = speedOfSound
+        // v_o = observer velocity (towards) = observerVelocity
+        // v_s = source velocity (towards)   = sourceVelocity
+        // We only need the ratio f_o / f_s, which is the pitch multiplier.
+        const float PitchScale = (speedOfSound + observerVelocity) / (speedOfSound - sourceVelocity);
 
-        // Make sure that pitch is negative to avoid any bugs
-        *PitchMultiplierOutput = std::max(0.0f, PitchScale);
+        // Past Mach 1 the denominator flips sign and the ratio goes negative, which a pitch shifter cannot use.
+        // Clamp to zero instead.
+        *PitchMultiplierOutput = FMath::Max(0.0f, PitchScale);
     }
 
     METASOUND_REGISTER_NODE(FDopplerCalculatorNode)
