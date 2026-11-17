@@ -1,5 +1,5 @@
 #include "Misc/AutomationTest.h"
-#include "../Audio/Delayline/DelayLineMetasoundNode.h"
+#include "../Audio/DelayLine/DelayLineMetasoundNode.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 

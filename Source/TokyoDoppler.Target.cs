@@ -3,11 +3,11 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class DspApEditorTarget : TargetRules
+public class TokyoDopplerTarget : TargetRules
 {
-	public DspApEditorTarget(TargetInfo Target) : base(Target)
+	public TokyoDopplerTarget(TargetInfo Target) : base(Target)
 	{
-		Type = TargetType.Editor;
+		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("DspAp");
