@@ -3,12 +3,13 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-// This test suite is separated into 4 specific domains crucial for circular buffer
+// This test suite is separated into 5 specific domains crucial for circular buffer
 // - Adding
 // - Storing (basically complement to adding, more about data integrity)
 // - Retrieving (ensuring that samples can be read correctly)
 // - Wrap around logic (main trick of the data structure)
-// Each domain is tested under 3 separate loads: basic case, huge amount of data, edge cases
+// - Safety (inputs that come from user-facing pins and could index out of bounds)
+// Domains 1-4 are tested under 3 separate loads: basic case, huge amount of data, edge cases
 
 // ----------------------------------------
 // Domain 1 (Adding) tests
@@ -219,6 +220,39 @@ bool FCircularBufferWrapEdge::RunTest(const FString& Args)
     // Index 9 holds 9.0f
     float retrieved = cb.Read(0.1f, sampleRate);
     TestEqual(TEXT("Safely calculates wrap exactly on the -1 array boundary edge"), retrieved, 9.0f);
+    return true;
+}
+
+// ----------------------------------------
+// Domain 5 (Safety) tests
+// ----------------------------------------
+
+// Delay times outside [0, buffer length) are clamped instead of reading outside the array
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCircularBufferSafetyOutOfRange, "DspAp.Audio.CircularBuffer.5_Safety.OutOfRangeDelay", EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+bool FCircularBufferSafetyOutOfRange::RunTest(const FString& Args)
+{
+    float sampleRate = 10.0f;
+    Metasound::CircularBuffer cb(sampleRate, 1.0f); // Capacity = 10
+
+    for (int i = 0; i < 10; i++) { cb.Add(static_cast<float>(i)); } // Fills 0 through 9, head back at 0
+
+    // 5 seconds = 50 samples, far longer than the buffer. Clamped to capacity - 1 = 9 samples ago -> value 1
+    TestEqual(TEXT("Delay longer than the buffer clamps to the oldest readable sample"), cb.Read(5.0f, sampleRate), 1.0f);
+
+    // Negative delay clamps to 0 samples -> slot under the write head
+    TestEqual(TEXT("Negative delay clamps to the write-head slot"), cb.Read(-1.0f, sampleRate), 0.0f);
+    return true;
+}
+
+// A zero-length buffer would make the modulo in Add() divide by zero
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCircularBufferSafetyZeroCapacity, "DspAp.Audio.CircularBuffer.5_Safety.ZeroCapacity", EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+bool FCircularBufferSafetyZeroCapacity::RunTest(const FString& Args)
+{
+    Metasound::CircularBuffer cb(0.0f, 1.0f);
+
+    TestEqual(TEXT("Capacity never drops below one sample"), cb.capacity, 1);
+    cb.Add(5.0f);
+    TestEqual(TEXT("Single slot buffer still stores samples"), cb.Read(0.0f, 0.0f), 5.0f);
     return true;
 }
 

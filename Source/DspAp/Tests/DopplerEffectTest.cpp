@@ -196,7 +196,7 @@ bool FDopplerLimitSupersonic::RunTest(const FString& Args)
 
     // Math: 34300 / (34300 - 40000) = 34300 / -5700 = -6.01.
     // Logic should clamp negative pitch results to 0.0 to avoid bugs
-    TestEqual(TEXT("Supersonic travel is safely clamped to 0.0 to aviud crushes"), *result, 0.0f);
+    TestEqual(TEXT("Supersonic travel is safely clamped to 0.0 to avoid crashes"), *result, 0.0f);
     return true;
 }
 
