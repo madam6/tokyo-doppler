@@ -86,7 +86,7 @@ namespace Metasound
 		, AudioInput(Input)
 		, AudioOutput(FAudioBufferWriteRef::CreateNew(InSettings))
 		, m_SampleRate(InSettings.GetSampleRate())
-		, m_CircularBuffer(InSettings.GetSampleRate(), 2.0f)
+		, m_CircularBuffer(InSettings.GetSampleRate(), MaxDelaySeconds)
 	{
 	}
 
@@ -111,21 +111,26 @@ namespace Metasound
 		// Retrieve raw pointers to the underlying arrays of input and output audio
 		const float* InputBuffer = AudioInput->GetData();
 		float* OutputBuffer = AudioOutput->GetData();
+		const int32 NumFrames = AudioInput->Num();
+
+		// Delay and feedback are control-rate inputs, so read them once per block rather than once per sample
+		const float DelaySeconds = *DelayValue;
+		const float Feedback = FMath::Clamp(*FeedbackValue, -MaxFeedback, MaxFeedback);
 
 		// Iterate through every single audio sample in the current block
-		for (int i = 0; i < AudioInput->Num(); i++)
+		for (int32 i = 0; i < NumFrames; i++)
 		{
 			// Get the incoming sample (the dry signal)
-			float dryInput = InputBuffer[i];
+			const float dryInput = InputBuffer[i];
 
 			// Retrieve the historical sample from the circular buffer (the wet signal)
-			float delayedInput = m_CircularBuffer.Read(*DelayValue, m_SampleRate);
+			float delayedInput = m_CircularBuffer.Read(DelaySeconds, m_SampleRate);
 
 			// Output the combination of the dry signal and the echo to the listener
 			OutputBuffer[i] = dryInput + delayedInput;
 
 			// Attenuate the delayed signal using the feedback parameter to create decaying echoes
-			delayedInput *= *FeedbackValue;
+			delayedInput *= Feedback;
 
 			// Store the dry input plus the newly attenuated feedback back into the buffer so it can be read again in the future
 			m_CircularBuffer.Add(dryInput + delayedInput);

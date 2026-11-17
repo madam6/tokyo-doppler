@@ -76,13 +76,19 @@ class DelayLine : public TExecutableOperator<DelayLine>
 {
 public:
 
+    // Longest delay the node can produce, in seconds. Sets the size of the circular buffer.
+    static constexpr float MaxDelaySeconds = 2.0f;
+
+    // Feedback is clamped just below 1 so the loop always decays instead of growing without bound.
+    static constexpr float MaxFeedback = 0.999f;
+
     static const FNodeClassMetadata& GetNodeInfo();
     static const FVertexInterface& DeclareVertexInterface();
 
     static TUniquePtr<IOperator> CreateOperator(const FBuildOperatorParams& InParams, FBuildResults& OutResults);
-    
+
     DelayLine(const FOperatorSettings& InSettings,
-        const FFloatReadRef& Delay, 
+        const FFloatReadRef& Delay,
         const FFloatReadRef& Feedback,
         const FAudioBufferReadRef& Input);
 
@@ -94,22 +100,22 @@ public:
     void Execute();
 
 private:
-    CircularBuffer m_CircularBuffer;
-
-    // Engine's sample rate, used to convert seconds into sample when looking into circular buffer
-    float m_SampleRate;
-
     // Delay time in seconds
     FFloatReadRef DelayValue;
 
     // Feedback: from 0 to 1
-    // 0 = no feedback
+    // 0 = no feedback (single echo)
     // 0.5 = delayed sound is multiplied by 0.5 and fed back, afterwards 0.25 then 0.125
-    // 1.0 = infinte feedback
+    // values close to 1 = very long, slowly decaying tail
     FFloatReadRef FeedbackValue;
 
-    FAudioBufferReadRef	 AudioInput;
+    FAudioBufferReadRef  AudioInput;
     FAudioBufferWriteRef AudioOutput;
+
+    // Engine's sample rate, used to convert seconds into samples when looking into the circular buffer
+    float m_SampleRate;
+
+    CircularBuffer m_CircularBuffer;
 };
 
 using FDelayLineNode = TNodeFacade<DelayLine>;
