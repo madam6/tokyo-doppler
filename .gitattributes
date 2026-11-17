@@ -1,0 +1,14 @@
+* text=auto
+
+# Unreal binary assets
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap   filter=lfs diff=lfs merge=lfs -text
+
+# Docs images stay in plain git so the README renders them without LFS bandwidth
+*.png binary
+*.jpg binary
+*.gif binary
+
+# Windows scripts keep CRLF
+*.bat eol=crlf
+*.ps1 eol=crlf
