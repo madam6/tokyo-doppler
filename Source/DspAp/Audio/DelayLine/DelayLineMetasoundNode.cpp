@@ -11,10 +11,10 @@ namespace Metasound
 
 	namespace DelayLineNode
 	{
-		METASOUND_PARAM(DelayValueName, "Delay value", "Delay applied to input signal in seconds.");
-		METASOUND_PARAM(FeedbackValueName, "Feedback value", "Amount of feedback applied to the delay signal in range 0 to 1.");
+		METASOUND_PARAM(DelayValueName, "Delay value", "Delay applied to input signal in seconds (0 to 2).");
+		METASOUND_PARAM(FeedbackValueName, "Feedback value", "Amount of the delayed signal fed back into the line, 0 to 1.");
 		METASOUND_PARAM(AudioInputName, "Input", "The Input signal");
-		METASOUND_PARAM(AudioOutputName, "Output", "The output signal with Delay being applied filtering applied");
+		METASOUND_PARAM(AudioOutputName, "Output", "The input mixed with its delayed, fed-back copy");
 	}
 
 	const FNodeClassMetadata& DelayLine::GetNodeInfo()
@@ -25,11 +25,13 @@ namespace Metasound
 
 				FNodeClassMetadata Metadata
 				{
+						// NOTE: the class name is what saved MetaSound graphs use to find this node.
+						// Changing it orphans the node in every existing asset.
 						FNodeClassName { "CityUniversity", "Delay line", "Audio" },
 						1, // Major Version
 						0, // Minor Version
 						METASOUND_LOCTEXT("DelayLineNodeDisplayName", "Delay line"),
-						METASOUND_LOCTEXT("DelayLineNodeDesc", "My implementation of delay line using circular buffer"),
+						METASOUND_LOCTEXT("DelayLineNodeDesc", "Feedback delay line built on a circular buffer"),
 						PluginAuthor,
 						PluginNodeMissingPrompt,
 						NodeInterface,

@@ -16,6 +16,8 @@ namespace Metasound
 
                 FNodeClassMetadata Metadata
                 {
+                        // NOTE: the class name is what saved MetaSound graphs use to find this node.
+                        // Changing it orphans the node in every existing asset.
                         FNodeClassName { "CityUniversity", "Doppler Calculator", "Audio" },
                         1, 0,
                         METASOUND_LOCTEXT("DopplerNodeDisplayName", "Doppler Calculator"),
