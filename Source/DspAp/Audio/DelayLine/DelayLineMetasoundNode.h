@@ -10,51 +10,38 @@
 namespace Metasound
 {
 
+    // Fixed-size ring buffer that stores the last `capacity` samples.
+    // The write head always points at the slot the *next* sample will go into,
+    // so reading `n` samples behind the head returns the sample written n writes ago.
     struct CircularBuffer
     {
         int capacity{ 0 };
-        float* data{ nullptr };
+        TArray<float> data;
         int currentHead{ 0 };
         int currentTail{ 0 };
 
         // Constructor
-        // Initializes the circular buffer by calculating its total capacity and allocating memory
+        // Initializes the circular buffer by calculating its total capacity and allocating zeroed memory
         // parameters:
         //     - sampleRate : The sample rate of the audio
         //     - length : The maximum length of the delay line in seconds
-        // return:
-        //     - none
         CircularBuffer(float sampleRate, float length)
             : capacity(FMath::Max(1, static_cast<int>(sampleRate * length)))
-            , data(new float[capacity]())
-            , currentHead(0)
-            , currentTail(0)
         {
-        };
-
-        // Destructor
-        // Frees the heap allocated array from memory to prevent leaks
-        // parameters:
-        //     - none
-        // return:
-        //     - none
-        ~CircularBuffer()
-        {
-            delete[] data;
-        };
+            // Allocate once up front: nothing on the audio thread ever reallocates this buffer
+            data.SetNumZeroed(capacity);
+        }
 
         // Add() function
-        // Adds a new audio sample to the buffer and safely advances the write head (currentHead)
+        // Adds a new audio sample to the buffer and advances the write head (currentHead)
         // parameters:
         //     - sample : The single audio float value to store in the buffer.
-        // return:
-        //     - none
         void Add(float sample)
         {
             data[currentHead] = sample;
-            // Safely increment the write head, by using modulo operator making sure that index wraps if capacity is achieved
+            // Increment the write head, using modulo so the index wraps once capacity is reached
             currentHead = (currentHead + 1) % capacity;
-        };
+        }
 
         // Read() function
         // Retrieves a historical audio sample from the buffer based on the requested delay time
