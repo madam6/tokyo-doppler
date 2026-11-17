@@ -5,7 +5,7 @@
 .EXAMPLE
     .\Scripts\Build.ps1
     .\Scripts\Build.ps1 -EngineDir "D:\Epic\UE_5.7"
-    .\Scripts\Build.ps1 -MaxParallelActions 4    # low-memory machines (compiler error C3859 / C1076)
+    .\Scripts\Build.ps1 -MaxParallelActions 2    # low-memory machines (compiler error C3859 / C1076)
 #>
 param(
     [string]$EngineDir,
