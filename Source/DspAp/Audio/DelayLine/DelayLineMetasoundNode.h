@@ -1,12 +1,11 @@
 #pragma once
 
-#include "HAL/Platform.h"
+#include "CoreMinimal.h"
 #include "MetasoundAudioBuffer.h"
 #include "MetasoundExecutableOperator.h"
 #include "MetasoundFacade.h"
 #include "MetasoundNodeInterface.h"
 #include "MetasoundPrimitives.h"
-#include <cmath>
 
 namespace Metasound
 {
@@ -26,7 +25,7 @@ namespace Metasound
         // return:
         //     - none
         CircularBuffer(float sampleRate, float length)
-            : capacity(static_cast<int>((sampleRate* length)))
+            : capacity(FMath::Max(1, static_cast<int>(sampleRate * length)))
             , data(new float[capacity]())
             , currentHead(0)
             , currentTail(0)
@@ -63,17 +62,24 @@ namespace Metasound
         //     - delayInSeconds : How far back in time to read the sample
         //     - sampleRate : The current sample rate to convert time into array indices.
         // return:
-        //     - none
+        //     - the sample written `delayInSeconds * sampleRate` writes ago
         float Read(float delayInSeconds, float sampleRate)
         {
-            // Convert the requested delay time from seconds into a discrete number of samples (array indices) to look backwards
-            int difference = static_cast<int>((delayInSeconds * sampleRate));
-            
+            // Convert the requested delay time from seconds into a discrete number of samples to look backwards
+            int difference = static_cast<int>(delayInSeconds * sampleRate);
+
+            // The delay comes straight from a user-facing pin, so it can be negative or longer than the buffer.
+            // Clamp it so the read index can never leave the array.
+            difference = FMath::Clamp(difference, 0, capacity - 1);
+
             // Calculate the tail position by subtracting the difference from the current head
             currentTail = currentHead - difference;
 
-            // Safely wrap the tail pointer around to the top of the array if it drops below zero
-            currentTail < 0 ? currentTail += capacity : currentTail;
+            // Wrap the tail pointer around to the top of the array if it drops below zero
+            if (currentTail < 0)
+            {
+                currentTail += capacity;
+            }
             return data[currentTail];
         }
     };
