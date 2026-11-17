@@ -153,7 +153,7 @@ cd tokyo-doppler
 .\Scripts\RunTests.ps1    # optional
 ```
 
-Then open `TokyoDoppler.uproject`. The scripts find the engine through the launcher's install list; for a source build or an unusual location pass `-EngineDir "D:\UE_5.7"` or set `UE_ENGINE_DIR`. If PowerShell refuses to run them, use `powershell -ExecutionPolicy Bypass -File .\Scripts\Build.ps1`. If the compiler stops with C3859 or C1076 (out of virtual memory, usually a small pagefile), run `.\Scripts\Build.ps1 -MaxParallelActions 4`.
+Then open `TokyoDoppler.uproject`. The scripts find the engine through the launcher's install list; for a source build or an unusual location pass `-EngineDir "D:\UE_5.7"` or set `UE_ENGINE_DIR`. If PowerShell refuses to run them, use `powershell -ExecutionPolicy Bypass -File .\Scripts\Build.ps1`. If the compiler stops with C3859 or C1076 (out of virtual memory, usually a small pagefile), run `.\Scripts\Build.ps1 -MaxParallelActions 2`.
 
 ### Third-party content
 
